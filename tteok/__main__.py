@@ -19,17 +19,20 @@ DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
 ---
 % if hanja:
 # ${hanja}
----
+% else:
+# ∅
 % endif
+---
 <speech voice="ko-KR-Wavenet-D">${word}</speech>
 % for i, definition in enumerate(definitions, start=1):
-${i}. ${definition['korean']}
-    % if 'english' in definition:
-      Translation: {{${definition['english']}}}
+${i}. ${definition['definition']}
+    % if definition['translated_definition']:
+{{${definition['translated_definition']}}}
     % endif
-    % if 'english_words' in definition:
-      Equivalent(s): {{${definition['english_words']}}}
+    % if definition['translated_word']:
+{{*${definition['translated_word']}*}}
     % endif
+---
 % endfor
 """
 
@@ -78,7 +81,7 @@ def format_krdict_view(response):
     card_data = {
         'word':        word_info['word'],
         'hanja':       format_krdict_view_hanja(word_info),
-        'definitions': format_krdict_view_defns(word_info['definition_info']),
+        'definitions': format_krdict_view_defns(word_info),
     }
     return card_data
 
@@ -89,9 +92,11 @@ def format_krdict_view_hanja(word_info):
             return lang_info['original_language']
 
 
-def format_krdict_view_defns(defn_infos):
+def format_krdict_view_defns(word_info):
+    if not 'definition_info' in word_info:
+        return []
     defns = []
-    for defn_info in defn_infos:
+    for defn_info in word_info['definition_info']:
         defn = format_krdict_view_defn(defn_info)
         defns.append(defn)
     return defns
@@ -99,7 +104,9 @@ def format_krdict_view_defns(defn_infos):
 
 def format_krdict_view_defn(defn_info):
     defn = {
-        'korean': defn_info.get('definition'),
+        'definition': defn_info.get('definition'),
+        'translated_definition': None,
+        'translated_word': None,
     }
     if 'translations' in defn_info:
         # NOTE: Some responses didn't have this key set
@@ -112,8 +119,8 @@ def format_krdict_view_defn(defn_info):
             # translation for a single language; in
             # any case, one should suffice so just
             # grab the first.
-            defn['english_words'] = trns_info.get('word')
-            defn['english'] = trns_info['definition']
+            defn['translated_word'] = trns_info.get('word')
+            defn['translated_definition'] = trns_info['definition']
             break
 
     return defn
