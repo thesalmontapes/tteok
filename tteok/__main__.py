@@ -32,6 +32,15 @@ ${i}. ${definition['definition']}
     % if definition['translated_word']:
 {{*${definition['translated_word']}*}}
     % endif
+    % for phrase in definition['example_phrases'][:3]:
+* ${phrase.replace(word, f'**{word}**')}
+    % endfor
+    % for sentence in definition['example_sentences'][:1]:
+* ${sentence.replace(word, f'**{word}**')}
+    % endfor
+    % for segment in definition['example_conversation'][:2]:
+* ${segment.replace(word, f'**{word}**')}
+    % endfor
 ---
 % endfor
 """
@@ -107,6 +116,9 @@ def format_krdict_view_defn(defn_info):
         'definition': defn_info.get('definition'),
         'translated_definition': None,
         'translated_word': None,
+        'example_sentences': [],
+        'example_phrases': [],
+        'example_conversation': [],
     }
     if 'translations' in defn_info:
         # NOTE: Some responses didn't have this key set
@@ -122,6 +134,18 @@ def format_krdict_view_defn(defn_info):
             defn['translated_word'] = trns_info.get('word')
             defn['translated_definition'] = trns_info['definition']
             break
+    if 'example_info' in defn_info:
+        # NOTE: Some responses didn't have this key set
+        # even with the 'guarantee_keys' option specified
+        # in the request.
+        for ex_info in defn_info['example_info']:
+            example = ex_info['example']
+            if ex_info['type'] == '문장':
+                defn['example_sentences'].append(example)
+            if ex_info['type'] == '대화':
+                defn['example_conversation'].append(example)
+            if ex_info['type'] == '구':
+                defn['example_phrases'].append(example)
 
     return defn
 
