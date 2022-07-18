@@ -22,6 +22,9 @@ DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
 % else:
 # ∅
 % endif
+% for comp in hanja_components:
+{{${comp['character']}: ${', '.join(comp['readings'])}}}
+% endfor
 ---
 <speech voice="ko-KR-Wavenet-D">${word}</speech>
 % for i, definition in enumerate(definitions, start=1):
@@ -80,6 +83,9 @@ def get_card_data(word_id):
         translation_language='english',
         guarantee_keys=True,
         raise_api_errors=True,
+        options={
+            'use_scraper': True,
+        }
     )
     card_data = format_krdict_view(response)
     return card_data
@@ -87,18 +93,30 @@ def get_card_data(word_id):
 
 def format_krdict_view(response):
     word_info = response['data']['results'][0]['word_info']
+    hanja, hanja_components = format_krdict_view_hanja(word_info)
     card_data = {
-        'word':        word_info['word'],
-        'hanja':       format_krdict_view_hanja(word_info),
-        'definitions': format_krdict_view_defns(word_info),
+        'word':             word_info['word'],
+        'hanja':            hanja,
+        'hanja_components': hanja_components,
+        'definitions':      format_krdict_view_defns(word_info),
     }
     return card_data
 
 
 def format_krdict_view_hanja(word_info):
+    hanja = ''
+    hanja_components = []
     for lang_info in word_info['original_language_info']:
         if lang_info['language_type'] == '한자':
-            return lang_info['original_language']
+            hanja = lang_info['original_language']
+            for hanja_info in lang_info.get('hanja_info', []):
+                hanja_component = {
+                    'character': hanja_info['hanja'],
+                    'readings':  hanja_info['readings'],
+                }
+                hanja_components.append(hanja_component)
+            break
+    return (hanja, hanja_components)
 
 
 def format_krdict_view_defns(word_info):
