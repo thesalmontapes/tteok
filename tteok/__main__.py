@@ -39,6 +39,9 @@ ${i}. ${definition['definition']}
     % if definition['translated_word']:
 {{*${definition['translated_word']}*}}
     % endif
+    % if definition['sentence_patterns']:
+> ${', '.join(definition['sentence_patterns'])}
+    % endif
     % for phrase in definition['example_phrases'][:3]:
 * ${phrase.replace(word, f'**{word}**')}
     % endfor
@@ -139,6 +142,7 @@ def format_krdict_view_defn(defn_info):
         'definition': defn_info.get('definition'),
         'translated_definition': None,
         'translated_word': None,
+        'sentence_patterns': [],
         'example_sentences': [],
         'example_phrases': [],
         'example_conversation': [],
@@ -157,6 +161,9 @@ def format_krdict_view_defn(defn_info):
             defn['translated_word'] = trns_info.get('word')
             defn['translated_definition'] = trns_info['definition']
             break
+    if 'pattern_info' in defn_info:
+        for pat_info in defn_info['pattern_info']:
+            defn['sentence_patterns'].append(pat_info['pattern'])
     if 'example_info' in defn_info:
         # NOTE: Some responses didn't have this key set
         # even with the 'guarantee_keys' option specified
