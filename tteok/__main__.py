@@ -193,10 +193,13 @@ def format_krdict_view_prons(word_info):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('words',
-                        nargs='+', metavar='WORD',
+                        nargs='*', metavar='WORD',
                         help='word for which to generate card files')
     parser.add_argument('--krdict-api-key',
                         help="API key for the Korean Learners' Dictionary API")
+    parser.add_argument('--words-file',
+                        type=argparse.FileType('r'),
+                        help='file of words (one line per word) for which to generate card files')
     parser.add_argument('--cards-dir',
                         default='cards',
                         help='directory to output card files')
@@ -210,7 +213,13 @@ if __name__ == "__main__":
 
     os.makedirs(args.cards_dir, exist_ok=True)
 
-    for word in args.words:
+    words = []
+    if args.words:
+        words = args.words
+    if args.words_file:
+        words = args.words_file.read().splitlines()
+
+    for word in words:
         matches = get_word_matches(word)
         for i, match in enumerate(matches, start=1):
             card = get_card(match, DEFAULT_MOCHI_CARD_TEMPLATE)
