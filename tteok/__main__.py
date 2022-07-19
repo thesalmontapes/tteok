@@ -16,6 +16,7 @@ ERR_MISSING_KRDICT_API_KEY = (
 )
 
 DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
+「${part_of_speech} 」
 ---
 % if hanja:
 # ${hanja}
@@ -103,6 +104,7 @@ def format_krdict_view(response):
     hanja, hanja_components = format_krdict_view_hanja(word_info)
     card_data = {
         'word':             word_info['word'],
+        'part_of_speech':   word_info['part_of_speech'],
         'hanja':            hanja,
         'hanja_components': hanja_components,
         'definitions':      format_krdict_view_defns(word_info),
