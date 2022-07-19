@@ -17,21 +17,18 @@ ERR_MISSING_KRDICT_API_KEY = (
 
 DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
 「${part_of_speech} 」
----
-% if hanja:
-# ${hanja}
-% else:
-# ∅
-% endif
-% for comp in hanja_components:
-{{${comp['character']}: ${', '.join(comp['readings'])}}}
-% endfor
----
 % if pronunciations:
-# [ ${", ".join(pronunciations)} ]
+[ ${", ".join(pronunciations)} ]
 % endif
 <speech voice="ko-KR-Wavenet-D">${word}</speech>
 ---
+% if hanja:
+# ${hanja}
+    % for comp in hanja_components:
+${comp['character']}: {{${', '.join(comp['readings'])}}}
+    % endfor
+---
+% endif
 % for i, definition in enumerate(definitions, start=1):
 ${i}. ${definition['definition']}
     % if definition['translated_definition']:
