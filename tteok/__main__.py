@@ -15,44 +15,6 @@ ERR_MISSING_KRDICT_API_KEY = (
     "account from https://krdict.korean.go.kr/openApi/openApiInfo."
 )
 
-DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
-「${part_of_speech} 」
-% if pronunciations:
-[ ${", ".join(pronunciations)} ]
-% endif
-<speech voice="ko-KR-Wavenet-D">${word}</speech>
----
-% if hanja:
-# ${hanja}
-    % for comp in hanja_components:
-[${comp['character']}](https://en.wiktionary.org/wiki/${comp['character']}): {{${', '.join(comp['readings'])}}}
-    % endfor
----
-% endif
-% for i, definition in enumerate(definitions, start=1):
-${i}. ${definition['definition']}
-    % if definition['translated_definition']:
-{{${definition['translated_definition']}}}
-    % endif
-    % if definition['translated_word']:
-{{*${definition['translated_word']}*}}
-    % endif
-    % if definition['sentence_patterns']:
-> ${', '.join(definition['sentence_patterns'])}
-    % endif
-    % for phrase in definition['example_phrases'][:3]:
-* ${phrase.replace(word, f'**{word}**')}
-    % endfor
-    % for sentence in definition['example_sentences'][:1]:
-* ${sentence.replace(word, f'**{word}**')}
-    % endfor
-    % for segment in definition['example_conversation'][:2]:
-* ${segment.replace(word, f'**{word}**')}
-    % endfor
----
-% endfor
-"""
-
 
 def get_words_by_subject_category(cat):
     response = krdict.scraper.fetch_subject_category_words(
@@ -232,6 +194,10 @@ if __name__ == "__main__":
     parser.add_argument('--words-file',
                         type=argparse.FileType('r'),
                         help='file of words (one line per word) for which to generate card files')
+    parser.add_argument('--card-template',
+                        default='templates/default.mako',
+                        type=argparse.FileType('r'),
+                        help='file containing Mako template for cards')
     parser.add_argument('--cards-dir',
                         default='cards',
                         help='directory to output card files')
@@ -260,10 +226,12 @@ if __name__ == "__main__":
         for word in words:
             word_ids = get_word_matches(word)
 
+    card_template = args.card_template.read()
+
     for word_id in word_ids:
         word_data = get_word_data(word_id)
         word = word_data['word']
-        card = get_card(word_data, DEFAULT_MOCHI_CARD_TEMPLATE)
+        card = get_card(word_data, card_template)
         card_file_path = os.path.join(args.cards_dir, f'{word}_{word_id}.md')
         card_file = open(card_file_path, 'w+', encoding='utf-8')
         card_file.write(card)
