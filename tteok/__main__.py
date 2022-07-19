@@ -54,6 +54,21 @@ ${i}. ${definition['definition']}
 """
 
 
+def get_words_by_subject_category(cat):
+    response = krdict.scraper.fetch_subject_category_words(
+        category=krdict.SubjectCategory.get(cat),
+        # TODO: If there are more than 100 results,
+        # search the next page.
+        per_page=100,
+    )
+    word_ids = []
+    for result in response['data']['results']:
+        word_id = result['target_code']
+        word_ids.append(word_id)
+
+    return word_ids
+
+
 def get_word_matches(word):
     response = krdict.advanced_search(
             query=word,
@@ -72,17 +87,16 @@ def get_word_matches(word):
     return matches
 
 
-def get_card(word_id, card_template):
-    card_data = get_card_data(word_id)
+def get_card(word_data, card_template):
     templ = Template(card_template, output_encoding='utf-8')
     buf = io.StringIO()
-    ctx = Context(buf, **card_data)
+    ctx = Context(buf, **word_data)
     templ.render_context(ctx)
 
     return buf.getvalue()
 
 
-def get_card_data(word_id):
+def get_word_data(word_id):
     response = krdict.view(
         target_code=word_id,
         translation_language='english',
@@ -92,8 +106,8 @@ def get_card_data(word_id):
             'use_scraper': True,
         }
     )
-    card_data = format_krdict_view(response)
-    return card_data
+    word_data = format_krdict_view(response)
+    return word_data
 
 
 def format_krdict_view(response):
@@ -196,6 +210,8 @@ if __name__ == "__main__":
                         help='word for which to generate card files')
     parser.add_argument('--krdict-api-key',
                         help="API key for the Korean Learners' Dictionary API")
+    parser.add_argument('--subject-category',
+                        help='generate cards for words of a specific subject category')
     parser.add_argument('--words-file',
                         type=argparse.FileType('r'),
                         help='file of words (one line per word) for which to generate card files')
@@ -212,18 +228,25 @@ if __name__ == "__main__":
 
     os.makedirs(args.cards_dir, exist_ok=True)
 
-    words = []
-    if args.words:
-        words = args.words
-    if args.words_file:
-        words = args.words_file.read().splitlines()
+    word_ids = []
 
-    for word in words:
-        matches = get_word_matches(word)
-        for i, match in enumerate(matches, start=1):
-            card = get_card(match, DEFAULT_MOCHI_CARD_TEMPLATE)
-            card_file_path = os.path.join(args.cards_dir, f'{word}_{i}.md')
-            card_file = open(card_file_path, 'w+', encoding='utf-8')
-            card_file.write(card)
-            card_file.close()
-            print(f'Card generated for {word} [{i}]')
+    if args.subject_category:
+        word_ids = get_words_by_subject_category(args.subject_category)
+    else:
+        words = []
+        if args.words:
+            words = args.words
+        if args.words_file:
+            words = args.words_file.read().splitlines()
+        for word in words:
+            word_ids = get_word_matches(word)
+
+    for word_id in word_ids:
+        word_data = get_word_data(word_id)
+        word = word_data['word']
+        card = get_card(word_data, DEFAULT_MOCHI_CARD_TEMPLATE)
+        card_file_path = os.path.join(args.cards_dir, f'{word}_{word_id}.md')
+        card_file = open(card_file_path, 'w+', encoding='utf-8')
+        card_file.write(card)
+        card_file.close()
+        print(f'Card generated for {word} [{word_id}]')
