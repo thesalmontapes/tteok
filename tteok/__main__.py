@@ -26,7 +26,11 @@ DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
 {{${comp['character']}: ${', '.join(comp['readings'])}}}
 % endfor
 ---
+% if pronunciations:
+# [ ${", ".join(pronunciations)} ]
+% endif
 <speech voice="ko-KR-Wavenet-D">${word}</speech>
+---
 % for i, definition in enumerate(definitions, start=1):
 ${i}. ${definition['definition']}
     % if definition['translated_definition']:
@@ -99,6 +103,7 @@ def format_krdict_view(response):
         'hanja':            hanja,
         'hanja_components': hanja_components,
         'definitions':      format_krdict_view_defns(word_info),
+        'pronunciations':   format_krdict_view_prons(word_info),
     }
     return card_data
 
@@ -166,6 +171,16 @@ def format_krdict_view_defn(defn_info):
                 defn['example_phrases'].append(example)
 
     return defn
+
+
+def format_krdict_view_prons(word_info):
+    if not 'pronunciation_info' in word_info:
+        return []
+    prons = []
+    for pron_info in word_info['pronunciation_info']:
+        prons.append(pron_info.get('pronunciation', ''))
+
+    return prons
 
 
 if __name__ == "__main__":
