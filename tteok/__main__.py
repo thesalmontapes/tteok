@@ -128,7 +128,7 @@ def format_krdict_view_hanja(word_info):
 
 
 def format_krdict_view_defns(word_info):
-    if not 'definition_info' in word_info:
+    if 'definition_info' not in word_info:
         return []
     defns = []
     for defn_info in word_info['definition_info']:
@@ -181,7 +181,7 @@ def format_krdict_view_defn(defn_info):
 
 
 def format_krdict_view_prons(word_info):
-    if not 'pronunciation_info' in word_info:
+    if 'pronunciation_info' not in word_info:
         return []
     prons = []
     for pron_info in word_info['pronunciation_info']:
