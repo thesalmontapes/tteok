@@ -25,7 +25,7 @@ DEFAULT_MOCHI_CARD_TEMPLATE = """# ${word}
 % if hanja:
 # ${hanja}
     % for comp in hanja_components:
-${comp['character']}: {{${', '.join(comp['readings'])}}}
+[${comp['character']}](https://en.wiktionary.org/wiki/${comp['character']}): {{${', '.join(comp['readings'])}}}
     % endfor
 ---
 % endif
