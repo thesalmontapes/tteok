@@ -69,6 +69,21 @@ def get_words_by_subject_category(cat):
     return word_ids
 
 
+def get_words_by_meaning_category(cat):
+    response = krdict.scraper.fetch_meaning_category_words(
+        category=krdict.MeaningCategory.get(cat),
+        # TODO: If there are more than 100 results,
+        # search the next page.
+        per_page=100,
+    )
+    word_ids = []
+    for result in response['data']['results']:
+        word_id = result['target_code']
+        word_ids.append(word_id)
+
+    return word_ids
+
+
 def get_word_matches(word):
     response = krdict.advanced_search(
             query=word,
@@ -212,6 +227,8 @@ if __name__ == "__main__":
                         help="API key for the Korean Learners' Dictionary API")
     parser.add_argument('--subject-category',
                         help='generate cards for words of a specific subject category')
+    parser.add_argument('--meaning-category',
+                        help='generate cards for words of a specific meaning category')
     parser.add_argument('--words-file',
                         type=argparse.FileType('r'),
                         help='file of words (one line per word) for which to generate card files')
@@ -232,6 +249,8 @@ if __name__ == "__main__":
 
     if args.subject_category:
         word_ids = get_words_by_subject_category(args.subject_category)
+    elif args.meaning_category:
+        word_ids = get_words_by_meaning_category(args.meaning_category)
     else:
         words = []
         if args.words:
