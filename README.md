@@ -30,7 +30,7 @@ takes precedence).
 Suppose you want to create a card for the word “교통” . Simply run the following:
 
 ```shell
-python3 tteok.py 교통
+python3 tteok 교통
 ```
 
 This will generate a card into `cards/` by default. You can override this default
@@ -47,7 +47,7 @@ You can also generate cards for multiple words at once. You can pass multiple
 words as positional arguments:
 
 ```
-python3 tteok.py 교통 기차 지하철
+python3 tteok 교통 기차 지하철
 ```
 
 Or, have them read from a file using `--words-file`. This file should have one
