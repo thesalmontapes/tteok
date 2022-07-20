@@ -17,50 +17,57 @@ ERR_MISSING_KRDICT_API_KEY = (
 
 
 def get_words_by_subject_category(cat):
-    response = krdict.scraper.fetch_subject_category_words(
-        category=krdict.SubjectCategory.get(cat),
-        # TODO: If there are more than 100 results,
-        # search the next page.
-        per_page=100,
-    )
     word_ids = []
-    for result in response['data']['results']:
-        word_id = result['target_code']
-        word_ids.append(word_id)
-
+    for page in range(1, 1000):
+        response = krdict.scraper.fetch_subject_category_words(
+            category=krdict.SubjectCategory.get(cat),
+            page=page,
+            per_page=100,
+        )
+        results = response['data']['results']
+        for result in results:
+            word_id = result['target_code']
+            word_ids.append(word_id)
+        if len(results) < 100:
+            break
     return word_ids
 
 
 def get_words_by_meaning_category(cat):
-    response = krdict.scraper.fetch_meaning_category_words(
-        category=krdict.MeaningCategory.get(cat),
-        # TODO: If there are more than 100 results,
-        # search the next page.
-        per_page=100,
-    )
     word_ids = []
-    for result in response['data']['results']:
-        word_id = result['target_code']
-        word_ids.append(word_id)
-
+    for page in range(1, 1000):
+        response = krdict.scraper.fetch_meaning_category_words(
+            category=krdict.MeaningCategory.get(cat),
+            page=page,
+            per_page=100,
+        )
+        results = response['data']['results']
+        for result in results:
+            word_id = result['target_code']
+            word_ids.append(word_id)
+        if len(results) < 100:
+            break
     return word_ids
 
 
 def get_word_matches(word):
-    response = krdict.advanced_search(
-            query=word,
-            search_type='word',
-            search_method='exact',
-            sort='popular',
-            per_page=100,
-            translation_language='english',
-            raise_api_errors=True,
-    )
     matches = []
-    for result in response['data']['results']:
-        match = result['target_code']
-        matches.append(match)
-
+    for page in range(1, 1000):
+        response = krdict.advanced_search(
+                query=word,
+                search_type='word',
+                search_method='exact',
+                page=page,
+                per_page=100,
+                translation_language='english',
+                raise_api_errors=True,
+        )
+        results = response['data']['results']
+        for result in results:
+            match = result['target_code']
+            matches.append(match)
+        if len(results) < 100:
+            break
     return matches
 
 
@@ -228,7 +235,9 @@ if __name__ == "__main__":
 
     card_template = args.card_template.read()
 
-    for word_id in word_ids:
+    print(f'Generating cards for {len(word_ids)} words')
+
+    for i, word_id in enumerate(word_ids, start=1):
         word_data = get_word_data(word_id)
         word = word_data['word']
         card = get_card(word_data, card_template)
@@ -236,4 +245,4 @@ if __name__ == "__main__":
         card_file = open(card_file_path, 'w+', encoding='utf-8')
         card_file.write(card)
         card_file.close()
-        print(f'Card generated for {word} [{word_id}]')
+        print(f'Card generated for {word} [{word_id}] ({i}/len{word_ids})')
