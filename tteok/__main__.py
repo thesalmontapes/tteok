@@ -246,4 +246,4 @@ if __name__ == "__main__":
         card_file = open(card_file_path, 'w+', encoding='utf-8')
         card_file.write(card)
         card_file.close()
-        print(f'Card generated for {word} [{word_id}] ({i}/len{word_ids})')
+        print(f'Card generated for {word} [{word_id}] ({i}/{len(word_ids)})')
