@@ -231,7 +231,8 @@ if __name__ == "__main__":
         if args.words_file:
             words = args.words_file.read().splitlines()
         for word in words:
-            word_ids = get_word_matches(word)
+            for word_id in get_word_matches(word):
+                word_ids.append(word_id)
 
     card_template = args.card_template.read()
 
