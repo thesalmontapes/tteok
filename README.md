@@ -3,7 +3,7 @@
 A small program that generates [Mochi](https://mochi.cards/) cards using
 data from the National Institute of Korean Language's Korean Learners'
 Dictionary (KrDict). It's called “tteok” because that's the Korean word
-for "rice cake" (get it?).
+for "mochi".
 
 ## Setup
 
